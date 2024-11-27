@@ -1,0 +1,113 @@
+% Melanoma pre-processing from ProcdData data; separating the channels and
+% performing 
+
+close all; clear all; clc;
+
+%% set up loading directories
+% loadloc = 'C:\Users\Destiny\Documents\Research\MATLAB\Melanoma';    % directory containing the volume(s)
+loadloc = '/project/6007991/borg/STUDENTS/ymiao/Melanoma/2021.09.29';
+addpath(loadloc);
+% savepath = loadloc;                 % directory to save the files to
+savepath = '/project/6007991/borg/STUDENTS/destinyh/DATA/Melanoma';
+script_dir = '/project/6007991/borg/STUDENTS/destinyh/MATLAB/JonesMatrixCode/JonesMatrixCode_Des_Ver6_ProcForPSSAO-OCT';
+addpath(script_dir);                % directory containing this script
+
+%% Load the file(s) %%%
+filename = '11_13_46-' ; %%%%%%%%%%%%% Change depending on file name %%%%%%%%%%%%
+disp(filename);
+load(fullfile(loadloc,filename));
+
+% Extract sizes
+[~,numAlines,numBscans] = size(ProcdData);
+
+%% Volume flythrough to set cropping boundaries
+figure;
+for ii=1:numBscans
+    img = mat2gray(squeeze(ProcdData(:,:,ii)));
+    imagesc(imadjust(img)); colormap(gray);title(ii);
+    pause(0.02);
+end
+
+%% Cropping
+ctop = 201;
+cbot = 500;
+pcrop = round(numAlines./2);
+
+avgOCT_ChP = ProcdData(ctop:cbot,1:pcrop,:);
+avgOCT_ChS = ProcdData(ctop:cbot,pcrop+1:end,:);
+
+avgOCT_ChP = avgOCT_ChP(ctop:cbot,:,:);
+avgOCT_ChS = avgOCT_ChS(ctop:cbot,:,:);
+
+% reset sizes
+[numPoints,numAlines,numBscans] = size(avgOCT_ChP);
+
+figure;
+for ii=1:numBscans
+    subplot(1,2,1)
+    imgP = mat2gray(squeeze(avgOCT_ChP(:,:,ii)));
+    imagesc(imadjust(imgP)); colormap(gray);title(ii);
+    
+    subplot(1,2,2)
+    imgS = mat2gray(squeeze(avgOCT_ChS(:,:,ii)));
+    imagesc(imadjust(imgS)); colormap(gray);title(ii);
+    
+    pause(0.02);
+end
+
+%% Motion correction
+addpath('C:\Users\Destiny\Documents\Research\MATLAB\volume_mcorr_code');
+[volume_mcorr_ChP, yShift_global, ~] = MotionCorrectionGlobal(avgOCT_ChP, filename, savepath);
+
+volume_mcorr_ChS = zeros(size(volume_mcorr_ChP));
+for I=1:numBscans
+    volume_mcorr_ChS(:,  :, I) = circshift(avgOCT_ChS(:, :, I), [yShift_global(I), 0]);
+end
+
+
+figure;
+for ii=1:numBscans
+    subplot(2,2,1)
+    imgP = mat2gray(squeeze(avgOCT_ChP(:,:,ii)));
+    imagesc(imadjust(imgP)); colormap(gray);title('ChP');
+    
+    subplot(2,2,2)
+    imgPM = mat2gray(squeeze(volume_mcorr_ChP(:,:,ii)));
+    imagesc(imadjust(imgPM)); colormap(gray);title('ChP - mcorr');
+    
+%     subplot(2,2,3)
+%     imgS = mat2gray(squeeze(avgOCT_ChS(:,:,ii)));
+%     imagesc(imadjust(imgS)); colormap(gray);title('ChS');
+% 
+%     subplot(2,2,4)
+%     imgSM = mat2gray(squeeze(volume_mcorr_ChS(:,:,ii)));
+%     imagesc(imadjust(imgSM)); colormap(gray);title('ChS - mcorr');
+    
+    pause(0.02);
+end
+
+
+% Central slow scan
+ii=250;
+figure;
+subplot(2,2,1)
+imgP = mat2gray(squeeze(avgOCT_ChP(:,ii,:)));
+imagesc(imadjust(imgP)); colormap(gray);title('ChP');
+
+subplot(2,2,2)
+imgPM = mat2gray(squeeze(volume_mcorr_ChP(:,ii,:)));
+imagesc(imadjust(imgPM)); colormap(gray);title('ChP - mcorr');
+
+subplot(2,2,3)
+imgS = mat2gray(squeeze(avgOCT_ChS(:,ii,:)));
+imagesc(imadjust(imgS)); colormap(gray);title('ChS');
+
+subplot(2,2,4)
+imgSM = mat2gray(squeeze(volume_mcorr_ChS(:,ii,:)));
+imagesc(imadjust(imgSM)); colormap(gray);title('ChS - mcorr');
+    
+
+%% saving files
+save(fullfile(savepath,[filename,'    _mcorr_ChP_Global.mat']), 'volume_mcorr_ChP', '-v7.3');
+save(fullfile(savepath,[filename,'    _mcorr_ChS_Global.mat']), 'volume_mcorr_ChS', '-v7.3');
+
