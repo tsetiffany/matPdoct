@@ -1,0 +1,39 @@
+#!/bin/bash
+ 
+#PBS -l walltime=8:00:00,select=1:ncpus=1:mem=186gb
+#PBS -N oct-batch
+#PBS -A st-mjju-1
+##PBS -m abe
+#PBS -M tffnytse@student.ubc.ca
+#PBS -o /scratch/st-mjju-1/tffnytse/output_^array_index^.txt
+#PBS -e /scratch/st-mjju-1/tffnytse/error_^array_index^.txt
+##PBS -o /scratch/st-mjju-1/tffnytse/output.txt
+##PBS -e /scratch/st-mjju-1/tffnytse/error.txt
+
+##Array job index
+#PBS -J 1-10
+ 
+################################################################################
+ 
+module load matlab
+
+##filepath=/arc/project/st-mjju-1/melanoma/PS118/OS
+filepath=${DATALOC::-1}
+fileIdx=$PBS_ARRAY_INDEX
+dR1=${dROI1}
+dR2=${dROI2}
+savepath=/scratch/st-mjju-1/tffnytse
+
+echo $filepath, $fileIdx, $dR1, $dR2
+
+cd $PBS_O_WORKDIR
+ 
+# cd /arc/home/tffnytse/Code/matPdoct/
+
+#### execute program
+
+echo "This is a job array sub-job with index value $PBS_ARRAY_INDEX"
+
+# matlab -nojvm -nodisplay -r "msize=$PBS_ARRAY_INDEX,save_path='${savepath}';test_program" >/dev/null
+
+matlab -nojvm -nodisplay -r "datapath='${filepath}',savepath='${savepath}',fileIdx=${fileIdx},dispROI=[${dR1},${dR2}];Pdoct_postprocess_sockeye" >/dev/null
