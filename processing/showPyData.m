@@ -1,0 +1,83 @@
+clc, clearvars, close all
+% Display OCT and DOPU images from PyOCT outputs
+% 2022-11-30
+
+file_dir = 'D:\RP\RP010';
+octname = '2023-01-09T13-38-30.046286octv';
+dopuname_1 = '2023-01-09T13-38-30.046286dopuv_1';
+dopuname_2 = '2023-01-09T13-38-30.046286dopuv_2';
+% file_dir = 'C:\Users\coil_\OneDrive - UBC\Research Projects\RP\Data';
+% octname = '2023-01-09T10-32-53.654475octv';
+% dopuname_1 = '2023-01-09T10-32-53.654475dopuv_1';
+% dopuname_2 = '2023-01-09T10-32-53.654475dopuv_2';
+% file_dir = 'H:\RAW\PDOCT-1.8Gs\2022.12.22_MJ';
+% octname = '2022-12-22T15-57-09.838404octv';
+% dopuname_1 = '2022-12-22T15-57-09.838404dopuv_1';
+% dopuname_2 = '2022-12-22T15-57-09.838404dopuv_2';
+
+% Load colormap %
+colormap_dir = 'C:\Users\coil_\OneDrive - UBC\Research Projects\Melanoma\PS038-Case';
+load(fullfile(colormap_dir,'cmap_dopu_r.mat'));    %load the DOPU colormap
+load(fullfile(colormap_dir,'cmap_RPE_r.mat'));     % load the RPE colourmap for en face projection of low DOPU values
+
+
+% Load the file(s) %
+DOPUV_1 = load(fullfile(file_dir,dopuname_1)).DOPU3d_1;
+DOPUV_2 = load(fullfile(file_dir,dopuname_2)).DOPU3d_2;
+% DOPUV = permute(cat(1,DOPUV_1,DOPUV_2),[2,3,1]);
+DOPUV = permute(cat(1,DOPUV_1,DOPUV_2),[3,2,1]);
+OCTV_py  =  load(fullfile(file_dir,octname)).linOCT3d;
+% OCTV = permute(OCTV_py,[2,3,1]);
+OCTV = permute(OCTV_py,[3,2,1]);
+clearvars DOPUV_1 DOPUV_2 OCTV_py
+%% B-scan views
+% bscan_frame = 605;
+dopu_threshold = 0;
+% fast ax
+for bscan_frame = 1:10:size(OCTV,3)
+    DOPU_img = flipud(mean(DOPUV(31:end-130,:,bscan_frame:bscan_frame+2),3));
+    OCT_img = flipud(imadjust(mat2gray(20*log10(mean(OCTV(31:end-130,:,bscan_frame:bscan_frame+2),3)))));
+    figure(1),imshow(DOPU_img,[dopu_threshold,1]);colormap(cmap_dopu_r);
+    figure(2),imshow(OCT_img);colormap('gray');
+    pause()
+end
+
+% slow ax
+for bscan_frame = 1:10:size(OCTV,2)
+    DOPU_img = flipud(squeeze(mean(DOPUV(31:end-130,bscan_frame:bscan_frame+2,:),2)));
+    OCT_img = flipud(imadjust(mat2gray(20*log10(squeeze(mean(OCTV(31:end-130,bscan_frame:bscan_frame+2,:),2))))));
+    figure(1),imshow(DOPU_img,[dopu_threshold,1]);colormap(cmap_dopu_r);
+    figure(2),imshow(OCT_img);colormap('gray');
+    pause()
+end
+
+% depth
+% slow ax
+for frame = 1:10:size(OCTV,2)
+    DOPU_img = flipud(squeeze(mean(DOPUV(frame:frame+9,:,:),1)));
+    OCT_img = flipud(imadjust(mat2gray(20*log10(squeeze(mean(OCTV(frame:frame+9,:,:),1))))));
+    figure(1),imshow(DOPU_img,[dopu_threshold,1]);colormap(cmap_dopu_r);
+    figure(2),imshow(OCT_img);colormap('gray');
+    pause()
+end
+
+%% En face views
+
+DOPU_enface = squeeze(mean(1-DOPUV(1:end-100,:,:),1)); 
+DOPU_enface_filt = imgaussfilt(DOPU_enface,1);
+
+OCT_enface = (squeeze(mean(OCTV(1:end-100,:,:),1)));
+OCT_enface(OCT_enface==0) = 30;
+OCT_enface_log = 20*log10(OCT_enface);
+OCT_enface_filt = imgaussfilt(OCT_enface_log,1);
+
+figure(4),imshow(flipud(DOPU_enface_filt),[]);colormap('gray');
+figure(5),imshow(flipud(DOPU_enface_filt),[]);colormap('hot');
+figure(6),imshow(flipud(imadjust(mat2gray(OCT_enface_filt),[0 0.9],[])));colormap('gray');
+
+%%
+for i=1:10:size(DOPUV,3)
+    DOPU_img = flipud(mean(DOPUV(31:end-130,:,i),3));
+    imshow(DOPU_img,[dopu_threshold,1]);colormap(cmap_dopu_r);
+    pause(0.1)
+end
