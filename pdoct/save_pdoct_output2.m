@@ -57,7 +57,7 @@ DOP3d = flip(flip(DOP3d,1),2);
     thresh = 50; % orig 5
     usfac = 1;
     numFrames = size(OCT3d, 3);
-    numBatch = 4;
+    numBatch = 2;
     %%% Set the shifting variable to save and analyze %%%
     xShift = zeros([numFrames 1]);
     yShift = zeros([numFrames 1]);
@@ -101,7 +101,7 @@ DOP3d = flip(flip(DOP3d,1),2);
     % subplot(1,2,2),plot(yShift), title('y-shift')
     
     %% Frame averaging 
-    frame_average = 4;
+    frame_average = 2;
     
     linear_avgOCT = zeros(size(OCT3d,1),size(OCT3d,2),round(numFrames/numBatch));
     log_avgOCT = zeros(size(OCT3d,1),size(OCT3d,2),round(numFrames/numBatch));
