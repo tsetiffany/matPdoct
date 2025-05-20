@@ -31,7 +31,7 @@ function DOPU_Bscans = genDOPU_combinedBscans(DOPU_test,avgOCT,cmap_dopu_r)
         % convert the DOPU image to RGB then HSV
         imgD=flipud(DOPU_test(:,:,ii));
         colorMapForSaving = imresize(cmap_dopu_r,[256, 3], 'nearest'); % interpolate to 256 colour values (one for eevry number possible in the image)
-        imgD = uint8(255.0 *mat2gray(imgD,[0,1])); %without mat2gray the images lose resolution and look like gray2ind, even though mat2gray on ingD doesn't seem to change teh values
+        imgD = uint8(255.0 *mat2gray(imgD,[0.3,1])); %without mat2gray the images lose resolution and look like gray2ind, even though mat2gray on ingD doesn't seem to change teh values
         imgD_rgb=ind2rgb(floor(imgD),colorMapForSaving);
         imgD_hsv=rgb2hsv(imgD_rgb); %h=1, s=2, v=3
 
