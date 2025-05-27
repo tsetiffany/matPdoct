@@ -40,7 +40,7 @@ numCscans     = parameters(4);
 numMscans     = parameters(5);
 
 %%% LUT %%%
-fn_ResParam = 'LUTSS.bin';
+fn_ResParam = 'LUT_5050.bin';
 fid_ResParam = fopen(fn_ResParam);
 rescaleParam = fread(fid_ResParam, 'double');
 LUT =  rescaleParam;

@@ -129,11 +129,11 @@ DOP3d = flip(flip(DOP3d,1),2);
         idx = ceil(i/numBatch);
         img_RGB = enface_OCT_rgb;
         if i == 1
-            img_RGB(:,i:i+7,1)=255;
+            img_RGB(:,i:i+3,1)=255;
         elseif i == numFrames
-            img_RGB(:,i-7:i,1)=255;
+            img_RGB(:,i-3:i,1)=255;
         else
-            img_RGB(:,i-3:i+3,1)=255;
+            img_RGB(:,i-1:i+1,1)=255;
         end
     %     imInd = gray2ind(imgF,256);
     %     img_RGB=ind2rgb(imInd,hot(256));
@@ -221,11 +221,11 @@ DOP3d = flip(flip(DOP3d,1),2);
         idx = ceil(i/numBatch);
         img_RGB = enface_im_rgb;
         if i == 1
-            img_RGB(:,i:i+7,1)=255;
+            img_RGB(:,i:i+3,1)=255;
         elseif i == numFrames
-            img_RGB(:,i-7:i,1)=255;
+            img_RGB(:,i-3:i,1)=255;
         else
-            img_RGB(:,i-3:i+3,1)=255;
+            img_RGB(:,i-1:i+1,1)=255;
         end
     %     imInd = gray2ind(imgF,256);
     %     img_RGB=ind2rgb(imInd,hot(256));
