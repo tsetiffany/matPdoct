@@ -7,8 +7,8 @@
 %%-----------------------------------------------------------------------------------------------------%%
 % local computer path % %
 tic
-datapath = 'H:\KP-ZM\PS114\OD';
-code_loc = 'C:\Users\ysmia\Documents\Github\ubc-coil\matPdoct';
+datapath = 'I:\15May25_MJ_OD';
+code_loc = 'C:\Users\tiffa\Documents\1. Projects\PDOCT Processing\main_vctrl\matPdoct_v1.0';
 addpath(genpath(code_loc));
 fileIdx = 1;
 savepath = datapath;
