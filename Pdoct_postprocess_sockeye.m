@@ -116,8 +116,9 @@ imwrite(imadjust(mat2gray(20*log10(abs(ref_noise_FFT)))),fullfile(log_path,[file
 %%
 disp('Volume DOPU Processing...')
 [OCT, DOPU, OCTA] = process_dopu_volume(cplxData_A,cplxData_B, OCT_PN, OCT_SN, numMscans);
-save(fullfile(process_path,'octv.mat'),'OCT','-v7.3')
-save(fullfile(process_path,'dopu.mat'),'DOPU','-v7.3')
+save(fullfile(process_path,[file_id,'_octv.mat']),'OCT','-v7.3')
+save(fullfile(process_path,[file_id,'_dopu.mat']),'DOPU','-v7.3')
+
 %%
 save_pdoct_output2(OCT,DOPU,process_path,file_id,cmap_dopu)
 disp('Saving Complete.');
