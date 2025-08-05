@@ -59,7 +59,9 @@ filtDOPU    = 1;
             end
             dopu_Numer  = sqrt(mS1.^2 + mS2.^2 + mS3.^2);
             dopu_Denom  = mS0;
-            dopu(:,:,J) = dopu_Numer./dopu_Denom; 
+            temp_dopu = dopu_Numer./dopu_Denom;
+            temp_dopu(temp_dopu<0 | temp_dopu>0.90) = 1;
+            dopu(:,:,J) = temp_dopu; 
     
             % Bulk-phase correction %
             rPhaseOff = repmat(angle(sum(OCT_S.*conj(OCT_P),1)), [size(OCT_S,1) 1]);
