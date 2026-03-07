@@ -124,6 +124,14 @@ imwrite(imadjust(mat2gray(20*log10(abs(ref_noise_FFT)))),fullfile(log_path,[file
 disp('Volume DOPU Processing...')
 [avgOCT, DOPU, OCTA] = process_dopu_volume(cplxData_A,cplxData_B, OCT_PN, OCT_SN,numMscans);
 
+disp('Attenuation Coefficient Processing...')
+OCT_bgsub = linear_intensity_bgsub(avgOCT);
+attcoef = zeros(size(OCT_bgsub));
+for i = 1:size(OCT_bgsub,3)
+    I = OCT_bgsub(:,:,i);
+    attcoef(:,:,i) = attenuation_coefficient(I);
+end
+
 %% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% SAVE                   %%%
@@ -132,6 +140,7 @@ disp('Volume DOPU Processing...')
 save(fullfile(process_path,[file_id,'_avgOCT']), 'avgOCT', '-v7.3');
 save(fullfile(process_path,[file_id,'_DOPU']), 'DOPU', '-v7.3');
 save(fullfile(process_path,[file_id,'_OCTA']), 'OCTA', '-v7.3');
+save(fullfile(process_path,[file_id,'_attcoef']), 'attcoef', '-v7.3');
 
 disp('Saving Complete.');
 
@@ -143,8 +152,5 @@ toc
 %     imagesc(imadjust(mat2gray(abs(cplxData_A(:,:,i))))),colormap('gray')
 %     pause(0.1)
 % end
-
-
-
 
 
