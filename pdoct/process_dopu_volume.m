@@ -1,4 +1,4 @@
-function [avgOCT, OCTA] = process_dopu_volume(cplxData_A,cplxData_B, OCT_PN, OCT_SN,numBMscans)
+function [DOPU] = process_dopu_volume(cplxData_A,cplxData_B, OCT_PN, OCT_SN,numBMscans)
 %%% Preset parameter %%%
 depthROI    = [1 1000];
 adapt       = 0;          % 1 (adaptive averaging kernel) / 0 (rigid kernel)
@@ -21,7 +21,10 @@ filtDOPU    = 1;
     %%% MAIN DOPU %%%
     %     disp('DOPU Main Process...')
     iF=1; % frame counter
-    clearvars dopu CompCplx
+    numGroups = ceil(numBscans/numBMscans);
+    dopu     = zeros(numPoints, numAlines, numBMscans);
+    CompCplx = zeros(numPoints, numAlines, numBMscans, 'like', volume_mcorr_ChP);
+    DOPU     = zeros(numPoints, numAlines, numGroups);
     for I = 1:numBMscans:numBscans
         
         K = ((I-1)/numBMscans)+1;
@@ -33,33 +36,33 @@ filtDOPU    = 1;
             OCT_P  = volume_mcorr_ChP(:,:,(I+J-1));  
             OCT_S  = volume_mcorr_ChS(:,:,(I+J-1));
     
-%             % Noise-error-corrected Stokes parameters %
-%             % OL 2014 "Degree of polarization uniformity with high noise
-%             % immunity using polarization-sensitive oct"
-%             S0    = OCT_P.*conj(OCT_P) + OCT_S.*conj(OCT_S);    % I
-%             S1    = OCT_P.*conj(OCT_P) - OCT_S.*conj(OCT_S);    % Q
-%             S2    = 2.*real(OCT_P.*conj(OCT_S));                % U
-%             S3    = 2.*imag(OCT_P.*conj(OCT_S));                % V
-%             S0_NC = S0 - (OCT_PN + OCT_SN);
-%             S1_NC = S1 - (OCT_PN - OCT_SN);
-%     
-%             % Spatial kernel % 
-%             if adapt == 1
-%                 S=cat(3,S0_NC,S1_NC,S2,S3);
-%                 [mS, adapt_angles(:,K), adapt_sizes(:,K)]   =  adaptKernelSmoothing_c(S, kernel,DOPU_depth_C(:,K));
-%                 mS0=mS(:,:,1);
-%                 mS1=mS(:,:,2);
-%                 mS2=mS(:,:,3);
-%                 mS3=mS(:,:,4);
-%             else
-%                 mS0   =  smooth2DFilter(S0_NC, kernel);
-%                 mS1   =  smooth2DFilter(S1_NC, kernel);
-%                 mS2   =  smooth2DFilter(S2, kernel);
-%                 mS3   =  smooth2DFilter(S3, kernel);
-%             end
-%             dopu_Numer  = sqrt(mS1.^2 + mS2.^2 + mS3.^2);
-%             dopu_Denom  = mS0;
-%             dopu(:,:,J) = dopu_Numer./dopu_Denom; 
+            % Noise-error-corrected Stokes parameters %
+            % OL 2014 "Degree of polarization uniformity with high noise
+            % immunity using polarization-sensitive oct"
+            S0    = OCT_P.*conj(OCT_P) + OCT_S.*conj(OCT_S);    % I
+            S1    = OCT_P.*conj(OCT_P) - OCT_S.*conj(OCT_S);    % Q
+            S2    = 2.*real(OCT_P.*conj(OCT_S));                % U
+            S3    = 2.*imag(OCT_P.*conj(OCT_S));                % V
+            S0_NC = S0 - (OCT_PN + OCT_SN);
+            S1_NC = S1 - (OCT_PN - OCT_SN);
+    
+            % Spatial kernel % 
+            if adapt == 1
+                S=cat(3,S0_NC,S1_NC,S2,S3);
+                [mS, adapt_angles(:,K), adapt_sizes(:,K)]   =  adaptKernelSmoothing_c(S, kernel,DOPU_depth_C(:,K));
+                mS0=mS(:,:,1);
+                mS1=mS(:,:,2);
+                mS2=mS(:,:,3);
+                mS3=mS(:,:,4);
+            else
+                mS0   =  smooth2DFilter(S0_NC, kernel);
+                mS1   =  smooth2DFilter(S1_NC, kernel);
+                mS2   =  smooth2DFilter(S2, kernel);
+                mS3   =  smooth2DFilter(S3, kernel);
+            end
+            dopu_Numer  = sqrt(mS1.^2 + mS2.^2 + mS3.^2);
+            dopu_Denom  = mS0;
+            dopu(:,:,J) = dopu_Numer./dopu_Denom; 
     
             % Bulk-phase correction %
             rPhaseOff = repmat(angle(sum(OCT_S.*conj(OCT_P),1)), [size(OCT_S,1) 1]);
@@ -72,20 +75,20 @@ filtDOPU    = 1;
         
         % BM scan average %
         if numBMscans == 1
-            avgOCT(:,:,K)  = abs(CompCplx);
-%             mDOPU          = dopu;
-            OCTA = [];
+%             avgOCT(:,:,K)  = abs(CompCplx);
+            mDOPU          = dopu;
+%             OCTA = [];
         else
-            avgOCT(:,:,K)  = mean(abs(CompCplx),3);
-%             mDOPU          = mean(dopu, 3);
-            if numBMscans == 2
-                OCTA(:,:,K) = abs(CompCplx(:,:,2)-CompCplx(:,:,1));
-            else
-                OCTA(:,:,K) = var(CompCplx, 0, 3);
-            end
+%             avgOCT(:,:,K)  = mean(abs(CompCplx),3);
+            mDOPU          = mean(dopu, 3);
+%             if numBMscans == 2
+%                 OCTA(:,:,K) = abs(CompCplx(:,:,2)-CompCplx(:,:,1));
+%             else
+%                 OCTA(:,:,K) = var(CompCplx, 0, 3);
+%             end
         end
-%         mDOPU(mDOPU<0) = 1; % noise
-%         DOPU(:,:,K)   = mDOPU;
+        mDOPU(mDOPU<0) = 1; % noise
+        DOPU(:,:,K)   = mDOPU;
     
         if mod(iF,10) == 0
             fprintf('DOPU main process : %d\n', iF);
@@ -93,15 +96,18 @@ filtDOPU    = 1;
         iF = iF+1;
     end
 
+    clear volume_mcorr_ChP volume_mcorr_ChS
+
     %%% Post-processing DOPU  %%%
-%     if filtDOPU == 1
-%         disp('Filtering DOPU...');
-%         DOPU_filt=DOPU;
-%         DOPU_filt(DOPU_filt>0.95) = 1; % threshold the DOPU
-%         DOPU=medfilt3(DOPU_filt,[3 5 3]); %[3 5(or 3) 3] (height, wdith, depth) with B-scans, [3 5 13] without B-scans
-%     end
-    
-%     % generate composite DOPU+avgOCT logscale B-scans
+    if filtDOPU == 1
+        disp('Filtering DOPU...');
+        DOPU_filt=DOPU;
+        DOPU_filt(DOPU_filt>0.95) = 1; % threshold the DOPU
+        DOPU=medfilt3(DOPU_filt,[3 5 3]); %[3 5(or 3) 3] (height, wdith, depth) with B-scans, [3 5 13] without B-scans
+        clear DOPU_filt
+    end
+
+    % generate composite DOPU+avgOCT logscale B-scans
 %     DOPU_Bscans = genDOPU_combinedBscans(DOPU,avgOCT,cmap_dopu_r);
 
     disp('DOPU Processing complete');

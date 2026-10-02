@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPTLOC="/scratch/st-mjju-1/tffnytse/Code_OCTA/matPdoct"
+SCRIPTLOC="/scratch/st-mjju-1/tffnytse/Code_PDOCTA/matPdoct"
 
 LOC="/scratch/st-mjju-1/tffnytse/"
 PROJECT='QUEUE'
